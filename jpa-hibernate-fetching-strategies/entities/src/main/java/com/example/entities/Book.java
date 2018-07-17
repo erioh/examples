@@ -17,6 +17,7 @@ package com.example.entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
@@ -52,5 +53,30 @@ public class Book extends AbstractBook {
     @Override
     public void setCategories(List<Category> categories) {
         this.categories = categories;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Book{");
+        sb.append("authors=").append(authors);
+        sb.append(", categories=").append(categories);
+        sb.append('}');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Book book = (Book) o;
+        return Objects.equals(authors, book.authors) &&
+                Objects.equals(categories, book.categories);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(super.hashCode(), authors, categories);
     }
 }

@@ -1,0 +1,7 @@
+my:
+  property: Not Development
+---
+spring:
+  profiles: development
+my:
+  property: Development Byatch

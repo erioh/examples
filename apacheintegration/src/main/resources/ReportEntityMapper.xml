@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.demenkov.apacheintegration.mybatis.ReportEntityMapper">
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+
+    <resultMap id="blogResult" type="org.sdemenkov.Blog">
+        <collection property="post" javaType="ArrayList" column="id" ofType="org.sdemenkov.Post"
+                    select="selectPostsForBlog"/>
+    </resultMap>
+    <select id="selectBlog" resultMap="blogResult">
+        select * from blog where id = #{id}
+    </select>
+    <select id="selectPostsForBlog" resultType="org.sdemenkov.Post">
+        seelct * from post where blog_id = #{id}
+    </select>
+
+
+    <resultMap id="firstMap" type="CustomerBase" autoMapping="true">
+        <id property="id" column="a1_id"/>
+    </resultMap>
+    <resultMap id="secondMap" type="Customer" extends="firstMap" autoMapping="true"/>
+    <resultMap id="customerExtended" type="org.something.CustomerExtended" extends="secondMap" autoMapping="true">
+        <collection property="somethingList" ofType="org.something.Something" autoMapping="true" columnPrefix="something_">
+            <id property="id" column="id"/>
+            <result property="customerId" column="customer_id"/>
+        </collection>
+    </resultMap>
+    <select id="getExt" resultMap="customerExtended">
+        select c.*, s.id something_id, s.customer_id something_customer_id, s.url something_url
+        from customers c left join something s on s.customer_id = c.id
+        where c.id = #{id}
+    </select>
+    <select id="selectReportEntity" resultType="org.demenkov.apacheintegration.dao.entity.ReportEntity">
+        select * from ReportEnity
+        <where>
+            <if test="id != null">
+                <bind name="pattern" value="'%' + id + '%'"/>
+                and id = #{pattern}
+            </if>
+            <if test="ids.length > 0">
+                and id in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="selectAll" resultType="org.demenkov.apacheintegration.dao.entity.ReportEntity">
+        select * from ReportEnity
+    </select>
+    <select id="selectBySuccess" resultType="org.demenkov.apacheintegration.dao.entity.ReportEntity">
+        select * from ReportEnity where success = #{success}
+    </select>
+    <insert id="insertReportEntity" parameterType="org.demenkov.apacheintegration.dao.entity.ReportEntity">
+        insert into ReportEnity(error_message, success, test_case) values (#{errorMessage}, #{success}, #{testCase})
+    </insert>
+    <select id="callProcedure" parameterType="org.demenkov.apacheintegration.dao.entity.ReportEntity"
+            statementType="CALLABLE">
+        {call some_procedure(#{id jdbcType = INTEGER, mode = IN},
+        #{someParameter jdbcType = INTEGER, mode = IN})}
+    </select>
+</mapper>

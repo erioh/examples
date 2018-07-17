@@ -25,10 +25,16 @@ import com.example.entities.BookFetchModeSubselect;
 import com.example.entities.Category;
 import java.time.Instant;
 import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.hibernate.HibernateException;
+import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.loader.MultipleBagFetchException;
@@ -177,6 +183,7 @@ public class HibernateBookRepositoryTest {
         persistBooks(() -> new Book());
         System.out.println("Default FetchMode HQL");
         List books = getCurrentSession().createQuery("select b from Book b").list();
+        System.out.println(books);
         assertEquals(4, books.size());
     }
 
@@ -184,8 +191,10 @@ public class HibernateBookRepositoryTest {
     public void defaultFetchModeCriteria() throws Exception {
         persistBooks(() -> new Book());
         System.out.println("Default FetchMode Criteria API");
-        List books = getCurrentSession().createCriteria(Book.class).list();
-        assertEquals(6, books.size()); // EIP and NoSQL books have 2 authors so present twice in the result set due to 'outer join'
+        System.out.println(getCurrentSession().get(Book.class, 1L, LockMode.PESSIMISTIC_FORCE_INCREMENT));
+//        List books = getCurrentSession().createCriteria(Book.class).list();
+//        System.out.println(books);
+//        assertEquals(6, books.size()); // EIP and NoSQL books have 2 authors so present twice in the result set due to 'outer join'
     }
 
     @Test
@@ -257,6 +266,37 @@ public class HibernateBookRepositoryTest {
         System.out.println("FetchMode.SELECT BatchSize Criteria API");
         List books = getCurrentSession().createCriteria(BookBatchSize.class).list();
         assertEquals(4, books.size());
+    }
+
+    @Test
+    public void test() throws Exception {
+        persistBooks(() -> new BookBatchSize());
+        BookBatchSize get = getCurrentSession().get(BookBatchSize.class, 7L);
+        BookBatchSize load = getCurrentSession().load(BookBatchSize.class, 4L);
+        System.out.println(get.getClass());
+        System.out.println(load.getClass());
+        System.out.println(get);
+        System.out.println(load);
+        List<String> arrList = new ArrayList<>();
+        arrList.add("SSS");
+        arrList.add("SSSdd");
+        arrList.add("SSS");
+        arrList.add("SSS");
+        arrList = arrList.stream().filter(s -> !s.contains("dd")).collect(Collectors.toList());
+//        Iterator<String> iterator = arrList.listIterator();
+//        for (;iterator.hasNext();){
+//            String s = iterator.next();
+//            if (s.contains("dd")){
+//                iterator.remove();
+//            }
+//        }
+//        for (int i = 0; i < arrList.size(); i++) {
+//            String s = arrList.get(i);
+//            if (s.contains("dd")) {
+//                arrList.remove(i);
+//            }
+//        }
+        System.out.println(arrList);
     }
 
     private Session getCurrentSession() throws HibernateException {
